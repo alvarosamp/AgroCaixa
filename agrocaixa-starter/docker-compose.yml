@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: agrocaixa-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: agrocaixa
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build: ./services/api
+    container_name: agrocaixa-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - ai
+    volumes:
+      - ./services/api:/app
+
+  ai:
+    build: ./services/ai
+    container_name: agrocaixa-ai
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8001:8001"
+    depends_on:
+      - postgres
+    volumes:
+      - ./services/ai:/app
+
+volumes:
+  postgres_data:
