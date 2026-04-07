@@ -2,6 +2,15 @@ from typing import Iterable, Mapping
 
 
 def resumo_mensal(transacoes: Iterable[Mapping]) -> dict:
+    '''
+    Retorna um resumo financeiro:
+    - total_entradas
+    - total_saidas
+    - saldo
+    - qtd_transacoes
+
+    '''
+
     total_entradas = 0.0
     total_saidas = 0.0
     qtd_transacoes = 0

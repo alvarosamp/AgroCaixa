@@ -3,6 +3,21 @@ from typing import Iterable, Mapping
 
 
 def resultado_por_atividade(transacoes: Iterable[Mapping]) -> dict:
+    """
+    Calcula resultado financeiro por atividade.
+
+    Cada atividade terá:
+    - income
+    - expense
+    - profit
+
+    Exemplo de transação:
+    {
+        "type": "expense",
+        "amount": 120.0,
+        "activity_name": "morango"
+    }
+    """
     resultado = defaultdict(lambda: {"income": 0.0, "expense": 0.0, "profit": 0.0})
 
     for transacao in transacoes:

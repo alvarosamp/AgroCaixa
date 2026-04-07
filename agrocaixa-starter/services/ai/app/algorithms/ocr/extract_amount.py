@@ -3,6 +3,14 @@ from typing import Optional
 
 
 def extrair_valor(texto: str) -> Optional[float]:
+    """
+    Extrai valor monetário do texto OCR.
+
+    Exemplos aceitos:
+    - Total: R$ 120,50
+    - Valor R$ 1.250,00
+    - R$ 89,90
+    """
     if not texto:
         return None
 

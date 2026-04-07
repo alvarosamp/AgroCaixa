@@ -2,6 +2,18 @@ from typing import Iterable, Mapping
 
 
 def calcular_saldo(transacoes: Iterable[Mapping]) -> float:
+    '''
+    Calcula o saldo total com base em uma lista de transações
+
+    Regras :
+    -income = soma
+    - expense = subtração
+
+    exemplo de transaçao
+    type : income
+    amount : 100.0
+    '''
+
     saldo = 0.0
 
     for transacao in transacoes:
