@@ -22,3 +22,9 @@ class TransactionSummary(BaseModel):
     expense: float
     balance: float
     total_transactions: int
+
+class TransactionSummary(BaseModel):
+    income: float
+    expense: float
+    balance: float
+    total_transactions: int

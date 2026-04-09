@@ -1,12 +1,21 @@
 from typing import List
+
 from fastapi import APIRouter, HTTPException
 from app.models.activity import Activity
 
 router = APIRouter(prefix='/activities', tags=['activities'])
 fake_db_activities : List[Activity] = []
 
-@router.post('/', response_model=Activity, status_code=201)
-def create_activity(activity: Activity) -> Activity :
+@router.post('/', response_model=Activity | List[Activity], status_code=201)
+def create_activity(activity: Activity | List[Activity]) -> Activity | List[Activity]:
+    if isinstance(activity, list):
+        created: List[Activity] = []
+        for item in activity:
+            item.id = len(fake_db_activities) + 1
+            fake_db_activities.append(item)
+            created.append(item)
+        return created
+
     activity.id = len(fake_db_activities) + 1
     fake_db_activities.append(activity)
     return activity

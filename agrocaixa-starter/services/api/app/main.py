@@ -2,10 +2,11 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import httpx
 import os
-
+from app.api.v1.categories import router as categories_router
 from app.api.v1.transactions import router as transactions_router
 from app.api.v1.farms import router as farms_router
 from app.api.v1.activities import router as activities_router
+from app.api.v1.reports import router as reports_router
 app = FastAPI(
     title="AgroCaixa API",
     version="0.2.0",
@@ -48,3 +49,5 @@ async def extract_with_ai(payload: AIExtractRequest) -> dict:
 app.include_router(farms_router)
 app.include_router(activities_router)
 app.include_router(transactions_router)
+app.include_router(categories_router)
+app.include_router(reports_router)
