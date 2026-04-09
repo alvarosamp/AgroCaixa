@@ -4,10 +4,11 @@ import httpx
 import os
 
 from app.api.v1.transactions import router as transactions_router
-
+from app.api.v1.farms import router as farms_router
+from app.api.v1.activities import router as activities_router
 app = FastAPI(
     title="AgroCaixa API",
-    version="0.1.0",
+    version="0.2.0",
     description="Backend principal do SaaS AgroCaixa."
 )
 
@@ -44,4 +45,6 @@ async def extract_with_ai(payload: AIExtractRequest) -> dict:
         return response.json()
 
 
+app.include_router(farms_router)
+app.include_router(activities_router)
 app.include_router(transactions_router)

@@ -9,7 +9,7 @@ SaaS de gestão financeira para micro e pequeno produtor rural, com foco em simp
 O AgroCaixa é uma plataforma que permite que produtores rurais controlem:
 
 - entradas e saídas financeiras
-- custos por atividade (ex: morango, café, leite)
+- custos por atividade (ex: morango, leite, café)
 - contas a pagar e receber
 - comprovantes e documentos
 - relatórios financeiros simples
@@ -72,7 +72,7 @@ agrocaixa/
 - OCR (Tesseract ou APIs externas)
 - Regras + ML leve (classificação de despesas)
 
-### Infra
+### Infraestrutura
 - Docker
 - Docker Compose
 
