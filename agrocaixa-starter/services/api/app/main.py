@@ -3,6 +3,8 @@ from pydantic import BaseModel
 import httpx
 import os
 
+from app.api.v1.transactions import router as transactions_router
+
 app = FastAPI(
     title="AgroCaixa API",
     version="0.1.0",
@@ -40,3 +42,6 @@ async def extract_with_ai(payload: AIExtractRequest) -> dict:
         )
         response.raise_for_status()
         return response.json()
+
+
+app.include_router(transactions_router)
