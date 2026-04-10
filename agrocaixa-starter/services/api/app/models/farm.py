@@ -1,11 +1,14 @@
-from typing import Optional
+from sqlalchemy import Column, Integer, String, ForeignKey
 
-from pydantic import BaseModel
+from app.db import Base
 
 
-class Farm(BaseModel):
-    id: Optional[int] = None
-    name: str  # Nome da fazenda
-    city: str  # Cidade onde a fazenda está localizada
-    state: str  # Estado onde a fazenda está localizada
-    production_type: str  # Tipo de produção (ex: agricultura, pecuária, etc.)
+class Farm(Base):
+    __tablename__ = "farms"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    name = Column(String, nullable=False)
+    city = Column(String, nullable=False)
+    state = Column(String, nullable=False)
+    production_type = Column(String, nullable=False)

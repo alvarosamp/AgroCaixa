@@ -15,13 +15,11 @@ class TransactionCreate(BaseModel):
 
 class TransactionResponse(TransactionCreate):
     id: int
+    user_id: int
 
+    class Config:
+        from_attributes = True
 
-class TransactionSummary(BaseModel):
-    income: float
-    expense: float
-    balance: float
-    total_transactions: int
 
 class TransactionSummary(BaseModel):
     income: float
