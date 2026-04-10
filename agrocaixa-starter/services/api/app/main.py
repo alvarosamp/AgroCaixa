@@ -7,6 +7,7 @@ from app.api.v1.transactions import router as transactions_router
 from app.api.v1.farms import router as farms_router
 from app.api.v1.activities import router as activities_router
 from app.api.v1.reports import router as reports_router
+from app.api.v1.auth import router as auth_router
 app = FastAPI(
     title="AgroCaixa API",
     version="0.2.0",
@@ -51,3 +52,4 @@ app.include_router(activities_router)
 app.include_router(transactions_router)
 app.include_router(categories_router)
 app.include_router(reports_router)
+app.include_router(auth_router)

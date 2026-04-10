@@ -34,24 +34,14 @@ De forma prática, no celular e sem complexidade.
 
 ## Arquitetura
 
-O projeto segue uma estrutura de **monorepo**, dividida em aplicações e serviços:
+Este diretório (`agrocaixa-starter/`) contém o starter com os serviços **API** e **AI** executados via Docker Compose.
 
 ```text
-agrocaixa/
-├─ apps/
-│  ├─ mobile/          # App React Native (Expo)
-│  └─ web/             # Painel web (Next.js)
-│
+agrocaixa-starter/
+├─ docker-compose.yml
 ├─ services/
-│  ├─ api/             # Backend principal (FastAPI)
-│  └─ ai/              # Serviço de IA (OCR, classificação, etc)
-│
-├─ packages/
-│  ├─ shared/          # Tipos e utilitários compartilhados
-│  └─ ui/              # Componentes reutilizáveis
-│
-├─ infra/              # Docker, configs, deploy
-├─ docs/               # Documentação do produto e arquitetura
+│  ├─ api/             # FastAPI + SQLAlchemy + Alembic + JWT
+│  └─ ai/              # OCR + regras + algoritmos financeiros
 ```
 
 ---
@@ -99,12 +89,38 @@ cp .env.example .env
 docker compose up --build
 ```
 
-### 4. Acessos
+### 4. Rodar migrações (Alembic)
+
+As tabelas do Postgres são criadas via Alembic. Após subir os containers, aplique as migrations:
+
+```bash
+docker compose exec api alembic -c alembic.ini upgrade head
+```
+
+### 5. Acessos
 
 - API: http://localhost:8000
 - Docs (Swagger): http://localhost:8000/docs
 - AI Service: http://localhost:8001
 - AI Service Docs: http://localhost:8001/docs
+
+---
+
+## Autenticação
+
+Rotas disponíveis:
+
+- `POST /auth/register` — cria usuário
+- `POST /auth/login` — retorna `access_token` (JWT)
+- `GET /auth/me` — retorna o usuário autenticado (Bearer token)
+
+Exemplo de registro:
+
+```bash
+curl -X POST http://localhost:8000/auth/register \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Alvaro","email":"alvaro@email.com","password":"123456"}'
+```
 
 ---
 
