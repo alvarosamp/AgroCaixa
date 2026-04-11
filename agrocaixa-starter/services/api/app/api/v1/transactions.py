@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.deps import get_current_user, get_db
+from app.models.activity import Activity
+from app.models.farm import Farm
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.schemas.transaction import (
@@ -21,6 +23,19 @@ def create_transaction(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> TransactionResponse:
+    activity = (
+        db.query(Activity)
+        .join(Farm, Activity.farm_id == Farm.id)
+        .filter(
+            Activity.id == transaction.activity_id,
+            Farm.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if not activity:
+        raise HTTPException(status_code=404, detail="Atividade não encontrada")
+
     db_transaction = Transaction(
         user_id=current_user.id,
         activity_id=transaction.activity_id,
@@ -28,9 +43,8 @@ def create_transaction(
         amount=transaction.amount,
         date=transaction.date,
         description=transaction.description,
-        activity_name=transaction.activity_name,
         category=transaction.category,
-)
+    )
 
     db.add(db_transaction)
     db.commit()
@@ -67,7 +81,7 @@ def get_transaction(
         .first()
     )
 
-    if transaction is None:
+    if not transaction:
         raise HTTPException(status_code=404, detail="Transação não encontrada")
 
     return transaction
