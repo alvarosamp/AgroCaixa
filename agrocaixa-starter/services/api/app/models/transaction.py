@@ -1,15 +1,14 @@
-"""Compatibility re-export.
+from sqlachemy import Column, Integer, String, ForeignKey
+from app.db import Base
 
-The canonical SQLAlchemy ORM model for the `transactions` table lives in
-`app.db_models.transaction.Transaction`.
+class Transaction(Base):
+    __tablename__ = "transactions"
 
-Keeping this module avoids breaking imports like:
-
-    from app.models.transaction import Transaction
-
-while preventing duplicate table declarations.
-"""
-
-from app.db_models.transaction import Transaction
-
-__all__ = ["Transaction"]
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=False)
+    activity_id = Column(Integer, ForeignKey("activities.id"), nullable=True, index=True)
+    type = Column(String, nullable=False)
+    amount = Column(Integer, nullable=False)
+    date = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    category = Column(String, nullable=True)

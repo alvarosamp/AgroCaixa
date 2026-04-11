@@ -1,9 +1,12 @@
-from pydantic import BaseModel
+from sqlachemy import Column, Integer, String, ForeignKey
+from app.db import Base
 from typing import Optional
 
-class Activity(BaseModel):
-    id: Optional[int] = None
-    farm_id: int  # Relacionamento com a fazenda
-    name: str  # Nome da atividade (ex: plantio de morango)
-    type: str  # Tipo de atividade (ex: plantio, colheita)
-    status: str  # Status da atividade (ex: em andamento, finalizada)
+class Activity(Base):
+    __tablename__ = "activities"
+
+    id: Optional[int] = Column(Integer, primary_key=True, index=True)
+    farm_id = Column(Integer, ForeignKey("farms.id"), nullable= False, index = True)
+    name = Column(String, nullable = False)
+    type = Column(String, nullable = False)
+    status = Column(String, nullable = False)
