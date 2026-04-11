@@ -22,13 +22,14 @@ def create_transaction(
     current_user: User = Depends(get_current_user),
 ) -> TransactionResponse:
     db_transaction = Transaction(
-    user_id=current_user.id,
-    activity_id=transaction.activity_id,
-    type=transaction.type,
-    amount=transaction.amount,
-    date=transaction.date,
-    description=transaction.description,
-    category=transaction.category,
+        user_id=current_user.id,
+        activity_id=transaction.activity_id,
+        type=transaction.type,
+        amount=transaction.amount,
+        date=transaction.date,
+        description=transaction.description,
+        activity_name=transaction.activity_name,
+        category=transaction.category,
 )
 
     db.add(db_transaction)

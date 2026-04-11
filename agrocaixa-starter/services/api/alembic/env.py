@@ -21,6 +21,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 from app.db import Base  # noqa: E402
 import app.db_models.transaction  # noqa: F401,E402
+import app.models.activity  # noqa: F401,E402
 import app.models.category  # noqa: F401,E402
 import app.models.farm  # noqa: F401,E402
 import app.models.user  # noqa: F401,E402

@@ -1,4 +1,4 @@
-from sqlachemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey
 from app.db import Base
 from typing import Optional
 
