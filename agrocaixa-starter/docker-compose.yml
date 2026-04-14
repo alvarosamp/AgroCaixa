@@ -39,5 +39,18 @@ services:
     volumes:
       - ./services/ai:/app
 
+  web:
+    build: ./services/apps/web
+    container_name: agrocaixa-web
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3001:3000"
+    depends_on:
+      - api
+    volumes:
+      - ./services/apps/web:/app
+
 volumes:
   postgres_data:
