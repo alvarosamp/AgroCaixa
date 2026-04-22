@@ -10,6 +10,7 @@ from app.api.v1.farms import router as farms_router
 from app.api.v1.activities import router as activities_router
 from app.api.v1.reports import router as reports_router
 from app.api.v1.auth import router as auth_router
+from app.api.v1.alerts import router as alerts_router
 
 app = FastAPI(
     title="AgroCaixa API",
@@ -17,7 +18,10 @@ app = FastAPI(
     description="Backend principal do SaaS AgroCaixa."
 )
 
-cors_origins_env = os.getenv("CORS_ORIGINS", "http://localhost:3000")
+cors_origins_env = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:3001",
+)
 cors_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
 
 app.add_middleware(
@@ -83,4 +87,5 @@ app.include_router(activities_router)
 app.include_router(transactions_router)
 app.include_router(categories_router)
 app.include_router(reports_router)
+app.include_router(alerts_router)
 app.include_router(auth_router)
