@@ -82,3 +82,22 @@ def list_alerts(
         )
 
     return alerts
+
+@router.patch("/{alert_id}/read")
+def mark_as_read(
+    alert_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    alert = db.query(FinancialAlert).filter(
+        FinancialAlert.id == alert_id,
+        FinancialAlert.user_id == current_user.id
+    ).first()
+
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alerta não encontrado")
+
+    alert.read = True
+    db.commit()
+
+    return {"message": "Alerta marcado como lido"}
