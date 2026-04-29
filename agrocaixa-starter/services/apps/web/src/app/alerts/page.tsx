@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { getToken } from "@/lib/auth";
-import { useRouter } from "next/navigation";
 
 type Alert = {
   id: number;
@@ -14,66 +13,71 @@ type Alert = {
 };
 
 export default function AlertsPage() {
-  const router = useRouter();
   const [alerts, setAlerts] = useState<Alert[]>([]);
-
-  async function loadAlerts() {
-    const data = await apiFetch<Alert[]>("/alerts");
-    setAlerts(data);
-  }
 
   useEffect(() => {
     const token = getToken();
-
     if (!token) {
-      router.push("/login");
+      window.location.href = "/login";
       return;
     }
 
     loadAlerts();
-  }, [router]);
+  }, []);
 
-  async function markAsRead(alertId: number) {
-    await apiFetch(`/alerts/${alertId}/read`, {
-      method: "PATCH",
-    });
+  async function loadAlerts() {
+    try {
+      const data = await apiFetch<Alert[]>("/alerts");
+      setAlerts(data);
+    } catch {
+      console.error("Erro ao carregar alertas");
+    }
+  }
 
-    await loadAlerts();
+  async function markAsRead(id: number) {
+    try {
+      await apiFetch(`/alerts/${id}/read`, {
+        method: "PATCH",
+      });
+
+      setAlerts((prev) =>
+        prev.map((a) =>
+          a.id === id ? { ...a, read: true } : a
+        )
+      );
+    } catch {
+      console.error("Erro ao marcar como lido");
+    }
   }
 
   return (
     <main style={{ padding: 24 }}>
-      <h1>Alertas Financeiros</h1>
-
-      <button onClick={() => router.push("/dashboard")}>
-        Voltar ao dashboard
-      </button>
+      <h1>Alertas</h1>
 
       {alerts.length === 0 ? (
-        <p>Sem alertas no momento.</p>
+        <p>Sem alertas</p>
       ) : (
-        <ul style={{ padding: 0, listStyle: "none" }}>
+        <ul>
           {alerts.map((alert) => (
             <li
               key={alert.id}
               style={{
-                border: "1px solid #ddd",
-                padding: 16,
-                borderRadius: 12,
-                marginTop: 12,
+                marginBottom: 12,
+                padding: 12,
+                border: "1px solid #ccc",
                 background: alert.read ? "#f5f5f5" : "#fff",
               }}
             >
-              <strong>{alert.type}</strong>
               <p>{alert.message}</p>
-              <small>{new Date(alert.date).toLocaleString("pt-BR")}</small>
+              <small>{new Date(alert.date).toLocaleString()}</small>
 
               {!alert.read && (
-                <div style={{ marginTop: 12 }}>
-                  <button onClick={() => markAsRead(alert.id)}>
-                    Marcar como lido
-                  </button>
-                </div>
+                <button
+                  onClick={() => markAsRead(alert.id)}
+                  style={{ marginTop: 8 }}
+                >
+                  Marcar como lido
+                </button>
               )}
             </li>
           ))}

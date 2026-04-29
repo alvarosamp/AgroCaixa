@@ -11,4 +11,6 @@ class AlertaFinancial(Base):
     date = Column(DateTime)
     read = Column(Boolean, default=False)
     type = Column(String) #expensive, income, category
+    #Tentando identificar alertas iguais para evitar alertas repetidos, ex: gasto acima de 1000, gasto acima de 1000, etc
+    key = Column(String, index = True) #chave para identificar o alerta, ex: categoria, valor, etc
 
