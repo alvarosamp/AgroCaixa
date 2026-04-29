@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 
-class AlertaFinancialSchema(BaseModel):
+class FinancialAlertResponse(BaseModel):
     id: int
     user_id: int
     message: str
@@ -10,4 +10,8 @@ class AlertaFinancialSchema(BaseModel):
     type: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+
+class UnreadAlertsResponse(BaseModel):
+    unread_count: int

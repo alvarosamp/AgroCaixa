@@ -13,16 +13,22 @@ import {
   FinancialSummary,
 } from "@/types/reports";
 
+type UnreadAlertsResponse = {
+  unread_count: number;
+};
+
 export default function DashboardPage() {
   const router = useRouter();
 
   const [summary, setSummary] = useState<FinancialSummary | null>(null);
   const [activityReport, setActivityReport] = useState<ActivityReportItem[]>([]);
   const [categoryReport, setCategoryReport] = useState<CategoryReportItem[]>([]);
+  const [unreadAlerts, setUnreadAlerts] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = getToken();
+
     if (!token) {
       router.push("/login");
       return;
@@ -30,15 +36,18 @@ export default function DashboardPage() {
 
     async function loadData() {
       try {
-        const [summaryData, activityData, categoryData] = await Promise.all([
-          apiFetch<FinancialSummary>("/reports/summary"),
-          apiFetch<ActivityReportItem[]>("/reports/by-activity"),
-          apiFetch<CategoryReportItem[]>("/reports/by-category"),
-        ]);
+        const [summaryData, activityData, categoryData, alertsData] =
+          await Promise.all([
+            apiFetch<FinancialSummary>("/reports/summary"),
+            apiFetch<ActivityReportItem[]>("/reports/by-activity"),
+            apiFetch<CategoryReportItem[]>("/reports/by-category"),
+            apiFetch<UnreadAlertsResponse>("/alerts/unread-count"),
+          ]);
 
         setSummary(summaryData);
         setActivityReport(activityData);
         setCategoryReport(categoryData);
+        setUnreadAlerts(alertsData.unread_count);
       } catch (error) {
         removeToken();
         router.push("/login");
@@ -65,21 +74,32 @@ export default function DashboardPage() {
         }}
       >
         <h1>Dashboard AgroCaixa</h1>
-        <button
-          onClick={() => {
-            removeToken();
-            router.push("/login");
-          }}
-        >
-          Sair
-        </button>
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => router.push("/transactions/new")}>
+            Nova transação
+          </button>
+
+          <button onClick={() => router.push("/alerts")}>
+            Ver alertas
+          </button>
+
+          <button
+            onClick={() => {
+              removeToken();
+              router.push("/login");
+            }}
+          >
+            Sair
+          </button>
+        </div>
       </div>
 
       {summary && (
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
+            gridTemplateColumns: "repeat(5, 1fr)",
             gap: 16,
             marginBottom: 24,
           }}
@@ -91,33 +111,42 @@ export default function DashboardPage() {
             title="Transações"
             value={String(summary.total_transactions)}
           />
+          <SummaryCard title="Alertas" value={String(unreadAlerts)} />
         </div>
       )}
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <SectionCard title="Resultado por atividade">
-          <ul>
-            {activityReport.map((item) => (
-              <li key={item.activity_id} style={{ marginBottom: 12 }}>
-                <strong>{item.activity_name}</strong>
-                <div>Entradas: R$ {item.income.toFixed(2)}</div>
-                <div>Saídas: R$ {item.expense.toFixed(2)}</div>
-                <div>Saldo: R$ {item.balance.toFixed(2)}</div>
-              </li>
-            ))}
-          </ul>
+          {activityReport.length === 0 ? (
+            <p>Nenhuma atividade com transações ainda.</p>
+          ) : (
+            <ul>
+              {activityReport.map((item) => (
+                <li key={item.activity_id} style={{ marginBottom: 12 }}>
+                  <strong>{item.activity_name}</strong>
+                  <div>Entradas: R$ {item.income.toFixed(2)}</div>
+                  <div>Saídas: R$ {item.expense.toFixed(2)}</div>
+                  <div>Saldo: R$ {item.balance.toFixed(2)}</div>
+                </li>
+              ))}
+            </ul>
+          )}
         </SectionCard>
 
         <SectionCard title="Gastos por categoria">
-          <ul>
-            {categoryReport.map((item) => (
-              <li key={item.category} style={{ marginBottom: 12 }}>
-                <strong>{item.category}</strong>
-                <div>Total: R$ {item.total.toFixed(2)}</div>
-                <div>Transações: {item.transactions_count}</div>
-              </li>
-            ))}
-          </ul>
+          {categoryReport.length === 0 ? (
+            <p>Nenhuma despesa categorizada ainda.</p>
+          ) : (
+            <ul>
+              {categoryReport.map((item) => (
+                <li key={item.category} style={{ marginBottom: 12 }}>
+                  <strong>{item.category}</strong>
+                  <div>Total: R$ {item.total.toFixed(2)}</div>
+                  <div>Transações: {item.transactions_count}</div>
+                </li>
+              ))}
+            </ul>
+          )}
         </SectionCard>
       </div>
     </main>
