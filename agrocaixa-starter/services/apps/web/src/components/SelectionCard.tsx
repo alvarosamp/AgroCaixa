@@ -2,20 +2,21 @@ import { ReactNode } from "react";
 
 type SectionCardProps = {
   title: string;
+  description?: string;
   children: ReactNode;
 };
 
-export default function SectionCard({ title, children }: SectionCardProps) {
+export default function SectionCard({
+  title,
+  description,
+  children,
+}: SectionCardProps) {
   return (
-    <section
-      style={{
-        border: "1px solid #ddd",
-        borderRadius: "12px",
-        padding: "16px",
-        background: "#fff",
-      }}
-    >
-      <h3 style={{ marginTop: 0 }}>{title}</h3>
+    <section className="panel">
+      <div className="panel__header">
+        <h2 className="panel__title">{title}</h2>
+        {description ? <p className="panel__description">{description}</p> : null}
+      </div>
       {children}
     </section>
   );

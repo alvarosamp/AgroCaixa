@@ -1,20 +1,21 @@
 type SummaryCardProps = {
   title: string;
   value: string;
+  hint?: string;
+  tone?: "default" | "positive" | "negative" | "accent";
 };
 
-export default function SummaryCard({ title, value }: SummaryCardProps) {
+export default function SummaryCard({
+  title,
+  value,
+  hint,
+  tone = "default",
+}: SummaryCardProps) {
   return (
-    <div
-      style={{
-        border: "1px solid #ddd",
-        borderRadius: "12px",
-        padding: "16px",
-        background: "#fff",
-      }}
-    >
-      <p style={{ margin: 0, fontSize: "14px", color: "#555" }}>{title}</p>
-      <h2 style={{ marginTop: "8px" }}>{value}</h2>
-    </div>
+    <article className={`summary-card summary-card--${tone}`}>
+      <p className="summary-card__title">{title}</p>
+      <strong className="summary-card__value">{value}</strong>
+      {hint ? <span className="summary-card__hint">{hint}</span> : null}
+    </article>
   );
 }

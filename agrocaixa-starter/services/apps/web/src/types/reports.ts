@@ -19,6 +19,26 @@ export type CategoryReportItem = {
   transactions_count: number;
 };
 
+export type FinancialAlert = {
+  id: number;
+  user_id: number;
+  message: string;
+  date: string;
+  type: string;
+  read: boolean;
+};
+
+export type UnreadAlertsResponse = {
+  unread_count: number;
+};
+
+export type ActivityOption = {
+  id: number;
+  name: string;
+  type: string;
+  status: string;
+};
+
 export type LoginResponse = {
   access_token: string;
   token_type: string;

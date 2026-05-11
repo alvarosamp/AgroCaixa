@@ -5,6 +5,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.alert_services import generate_financial_alerts
 from app.deps import get_current_user, get_db
 from app.models.activity import Activity
 from app.models.farm import Farm
@@ -25,6 +26,9 @@ def create_transaction(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> TransactionResponse:
+    if transaction.activity_id is None:
+        raise HTTPException(status_code=400, detail="activity_id é obrigatório")
+
     activity = (
         db.query(Activity)
         .join(Farm, Activity.farm_id == Farm.id)
@@ -39,7 +43,7 @@ def create_transaction(
         raise HTTPException(status_code=404, detail="Atividade não encontrada")
 
     ai_url = os.getenv("AI_SERVICE_URL", "http://localhost:8001")
-    suggested_category = transaction.category
+    suggested_category = (transaction.category or "").strip() or None
 
     if not suggested_category and transaction.description:
         try:
@@ -50,7 +54,7 @@ def create_transaction(
             )
             response.raise_for_status()
             suggested_category = response.json().get("category", "outros")
-        except Exception:
+        except httpx.HTTPError:
             suggested_category = "outros"
 
     db_transaction = Transaction(
@@ -66,6 +70,8 @@ def create_transaction(
     db.add(db_transaction)
     db.commit()
     db.refresh(db_transaction)
+    generate_financial_alerts(db, current_user.id)
+
     return db_transaction
 
 

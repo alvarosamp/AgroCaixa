@@ -1,21 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import AppShell from "@/components/AppShell";
 import SectionCard from "@/components/SelectionCard";
 import SummaryCard from "@/components/SummaryCard";
-import { apiFetch } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 import { getToken, removeToken } from "@/lib/auth";
+import { formatCurrency } from "@/lib/format";
 import {
   ActivityReportItem,
   CategoryReportItem,
   FinancialSummary,
+  UnreadAlertsResponse,
 } from "@/types/reports";
-
-type UnreadAlertsResponse = {
-  unread_count: number;
-};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -25,16 +25,20 @@ export default function DashboardPage() {
   const [categoryReport, setCategoryReport] = useState<CategoryReportItem[]>([]);
   const [unreadAlerts, setUnreadAlerts] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = getToken();
-
-    if (!token) {
-      router.push("/login");
+    if (!getToken()) {
+      router.replace("/login");
       return;
     }
 
+    let active = true;
+
     async function loadData() {
+      setLoading(true);
+      setError("");
+
       try {
         const [summaryData, activityData, categoryData, alertsData] =
           await Promise.all([
@@ -44,111 +48,286 @@ export default function DashboardPage() {
             apiFetch<UnreadAlertsResponse>("/alerts/unread-count"),
           ]);
 
+        if (!active) {
+          return;
+        }
+
         setSummary(summaryData);
         setActivityReport(activityData);
         setCategoryReport(categoryData);
         setUnreadAlerts(alertsData.unread_count);
-      } catch (error) {
-        removeToken();
-        router.push("/login");
+      } catch (err) {
+        if (!active) {
+          return;
+        }
+
+        if (err instanceof ApiError && err.status === 401) {
+          removeToken();
+          router.replace("/login");
+          return;
+        }
+
+        setError("Não foi possível carregar o dashboard agora.");
       } finally {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
 
     loadData();
+
+    return () => {
+      active = false;
+    };
   }, [router]);
 
-  if (loading) {
-    return <main style={{ padding: 24 }}>Carregando dashboard...</main>;
-  }
+  const topCategory = categoryReport[0] ?? null;
+  const bestActivity = useMemo(
+    () =>
+      [...activityReport].sort((current, next) => next.balance - current.balance)[0] ??
+      null,
+    [activityReport]
+  );
+  const biggestPressure = useMemo(
+    () =>
+      [...activityReport].sort(
+        (current, next) => Math.abs(next.expense) - Math.abs(current.expense)
+      )[0] ?? null,
+    [activityReport]
+  );
+
+  const expenseBase = summary?.expense || 0;
+  const categoryHighlights = categoryReport.slice(0, 4).map((item) => ({
+    ...item,
+    share: expenseBase > 0 ? Math.round((item.total / expenseBase) * 100) : 0,
+  }));
+
+  const priorities = [
+    unreadAlerts > 0
+      ? `${unreadAlerts} alerta(s) pedem revisão antes do próximo lançamento.`
+      : "Seu painel está sem alertas pendentes neste momento.",
+    topCategory
+      ? `A categoria ${topCategory.category} é a maior pressão de custo do período.`
+      : "Ainda não há categoria dominante o suficiente para análise de custo.",
+    bestActivity
+      ? `${bestActivity.activity_name} é a frente com melhor saldo até agora.`
+      : "Assim que houver movimentação por atividade, mostramos a mais rentável.",
+  ];
 
   return (
-    <main style={{ padding: 24, background: "#f5f5f5", minHeight: "100vh" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 24,
-        }}
-      >
-        <h1>Dashboard AgroCaixa</h1>
+    <AppShell
+      eyebrow="Painel operacional"
+      title="Entenda a saúde financeira da fazenda sem perder tempo em planilha."
+      description="Acompanhe saldo, custos por categoria e desempenho por atividade em um painel pensado para rotina rural."
+      actions={
+        <>
+          <Link className="button button--light" href="/transactions/new">
+            Novo lançamento
+          </Link>
+          <Link className="button button--ghost-light" href="/alerts">
+            Revisar alertas
+          </Link>
+        </>
+      }
+      aside={
+        <div className="hero-glance">
+          <span className="hero-glance__label">Leitura rápida</span>
+          <strong className="hero-glance__value">
+            {summary ? formatCurrency(summary.balance) : "Carregando..."}
+          </strong>
+          <p className="hero-glance__copy">
+            {summary && summary.balance >= 0
+              ? "A operação segue no verde. Vale monitorar categorias que subiram."
+              : "O caixa precisa de atenção. Reforce análise de custos e alertas."}
+          </p>
 
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => router.push("/transactions/new")}>
-            Nova transação
-          </button>
-
-          <button onClick={() => router.push("/alerts")}>
-            Ver alertas
-          </button>
-
-          <button
-            onClick={() => {
-              removeToken();
-              router.push("/login");
-            }}
-          >
-            Sair
-          </button>
+          <div className="hero-glance__rows">
+            <div>
+              <span>Receitas</span>
+              <strong>{summary ? formatCurrency(summary.income) : "--"}</strong>
+            </div>
+            <div>
+              <span>Saídas</span>
+              <strong>{summary ? formatCurrency(summary.expense) : "--"}</strong>
+            </div>
+          </div>
         </div>
-      </div>
+      }
+    >
+      {error ? <div className="notice notice--error">{error}</div> : null}
 
-      {summary && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(5, 1fr)",
-            gap: 16,
-            marginBottom: 24,
-          }}
-        >
-          <SummaryCard title="Entradas" value={`R$ ${summary.income.toFixed(2)}`} />
-          <SummaryCard title="Saídas" value={`R$ ${summary.expense.toFixed(2)}`} />
-          <SummaryCard title="Saldo" value={`R$ ${summary.balance.toFixed(2)}`} />
-          <SummaryCard
-            title="Transações"
-            value={String(summary.total_transactions)}
-          />
-          <SummaryCard title="Alertas" value={String(unreadAlerts)} />
+      {loading ? (
+        <section className="surface-card section-loading">
+          <h2 className="section-title section-title--compact">
+            Carregando dashboard...
+          </h2>
+          <p className="page-subtitle">
+            Estamos reunindo indicadores, categorias e alertas do período.
+          </p>
+        </section>
+      ) : (
+        <div className="section-stack">
+          {summary ? (
+            <section className="summary-grid">
+              <SummaryCard
+                title="Entradas"
+                value={formatCurrency(summary.income)}
+                hint="Receitas lançadas"
+                tone="positive"
+              />
+              <SummaryCard
+                title="Saídas"
+                value={formatCurrency(summary.expense)}
+                hint="Custos registrados"
+                tone="negative"
+              />
+              <SummaryCard
+                title="Saldo"
+                value={formatCurrency(summary.balance)}
+                hint="Situação atual do caixa"
+                tone={summary.balance >= 0 ? "accent" : "negative"}
+              />
+              <SummaryCard
+                title="Transações"
+                value={String(summary.total_transactions)}
+                hint="Movimentos no sistema"
+              />
+              <SummaryCard
+                title="Alertas"
+                value={String(unreadAlerts)}
+                hint={unreadAlerts > 0 ? "Há pontos para revisar" : "Sem pendências"}
+                tone={unreadAlerts > 0 ? "accent" : "default"}
+              />
+            </section>
+          ) : null}
+
+          <section className="insight-grid">
+            <article className="surface-card insight-card">
+              <span className="insight-card__label">Maior custo</span>
+              <strong className="insight-card__value">
+                {topCategory ? topCategory.category : "Sem dados ainda"}
+              </strong>
+              <p className="insight-card__copy">
+                {topCategory
+                  ? `${formatCurrency(topCategory.total)} concentram a principal pressão deste período.`
+                  : "Assim que houver despesas categorizadas, mostramos a principal frente de atenção."}
+              </p>
+            </article>
+
+            <article className="surface-card insight-card">
+              <span className="insight-card__label">Atividade destaque</span>
+              <strong className="insight-card__value">
+                {bestActivity ? bestActivity.activity_name : "Aguardando histórico"}
+              </strong>
+              <p className="insight-card__copy">
+                {bestActivity
+                  ? `Saldo de ${formatCurrency(bestActivity.balance)} até agora.`
+                  : "Faltam lançamentos por atividade para comparar resultado."}
+              </p>
+            </article>
+
+            <article className="surface-card insight-card">
+              <span className="insight-card__label">Maior pressão</span>
+              <strong className="insight-card__value">
+                {biggestPressure ? biggestPressure.activity_name : "Sem pressão mapeada"}
+              </strong>
+              <p className="insight-card__copy">
+                {biggestPressure
+                  ? `${formatCurrency(biggestPressure.expense)} em saídas acumuladas nesta frente.`
+                  : "Ainda não há dados suficientes para destacar uma frente crítica."}
+              </p>
+            </article>
+          </section>
+
+          <section className="split-grid">
+            <SectionCard
+              title="Custos que mais pesam"
+              description="As maiores categorias ajudam a priorizar corte, compra e negociação."
+            >
+              {categoryHighlights.length === 0 ? (
+                <div className="empty-state">
+                  Sem despesas categorizadas ainda. Assim que você lançar custos, este
+                  mapa mostra onde o caixa está sendo mais pressionado.
+                </div>
+              ) : (
+                <ul className="progress-list">
+                  {categoryHighlights.map((item) => (
+                    <li className="progress-list__item" key={item.category}>
+                      <div className="progress-list__header">
+                        <strong>{item.category}</strong>
+                        <span>{formatCurrency(item.total)}</span>
+                      </div>
+                      <div className="progress-track">
+                        <span
+                          className="progress-fill"
+                          style={{ width: `${Math.max(item.share, 6)}%` }}
+                        />
+                      </div>
+                      <small>{item.share}% das saídas do período</small>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </SectionCard>
+
+            <SectionCard
+              title="Prioridades do dia"
+              description="Leitura operacional direta para você agir sem abrir cinco telas."
+            >
+              <ul className="soft-list soft-list--card">
+                {priorities.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </SectionCard>
+          </section>
+
+          <section className="split-grid">
+            <SectionCard
+              title="Resultado por atividade"
+              description="Veja onde a produção está puxando saldo e onde o custo está comendo margem."
+            >
+              {activityReport.length === 0 ? (
+                <div className="empty-state">
+                  Nenhuma atividade com transações registradas ainda.
+                </div>
+              ) : (
+                <ul className="detail-list">
+                  {activityReport.map((item) => (
+                    <li className="detail-item" key={item.activity_id}>
+                      <strong>{item.activity_name}</strong>
+                      <div className="metric-row">
+                        <span>Entradas</span>
+                        <span>{formatCurrency(item.income)}</span>
+                      </div>
+                      <div className="metric-row">
+                        <span>Saídas</span>
+                        <span>{formatCurrency(item.expense)}</span>
+                      </div>
+                      <div className="metric-row">
+                        <span>Saldo</span>
+                        <span>{formatCurrency(item.balance)}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </SectionCard>
+
+            <SectionCard
+              title="O que a plataforma vai te ajudar a melhorar"
+              description="A ideia do produto é transformar o financeiro em rotina de decisão, não em obrigação burocrática."
+            >
+              <ul className="soft-list soft-list--card">
+                <li>Registrar rápido sem depender de computador ou planilha longa.</li>
+                <li>Comparar meses para perceber aumento de custo antes do aperto.</li>
+                <li>Entender quais atividades realmente sustentam a operação.</li>
+              </ul>
+            </SectionCard>
+          </section>
         </div>
       )}
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <SectionCard title="Resultado por atividade">
-          {activityReport.length === 0 ? (
-            <p>Nenhuma atividade com transações ainda.</p>
-          ) : (
-            <ul>
-              {activityReport.map((item) => (
-                <li key={item.activity_id} style={{ marginBottom: 12 }}>
-                  <strong>{item.activity_name}</strong>
-                  <div>Entradas: R$ {item.income.toFixed(2)}</div>
-                  <div>Saídas: R$ {item.expense.toFixed(2)}</div>
-                  <div>Saldo: R$ {item.balance.toFixed(2)}</div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
-
-        <SectionCard title="Gastos por categoria">
-          {categoryReport.length === 0 ? (
-            <p>Nenhuma despesa categorizada ainda.</p>
-          ) : (
-            <ul>
-              {categoryReport.map((item) => (
-                <li key={item.category} style={{ marginBottom: 12 }}>
-                  <strong>{item.category}</strong>
-                  <div>Total: R$ {item.total.toFixed(2)}</div>
-                  <div>Transações: {item.transactions_count}</div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
-      </div>
-    </main>
+    </AppShell>
   );
 }
