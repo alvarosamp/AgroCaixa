@@ -34,9 +34,31 @@ export type UnreadAlertsResponse = {
 
 export type ActivityOption = {
   id: number;
+  farm_id: number;
   name: string;
   type: string;
   status: string;
+};
+
+export type FarmResponse = {
+  id: number;
+  user_id: number;
+  name: string;
+  city: string;
+  state: string;
+  production_type: string;
+};
+
+export type TransactionItem = {
+  id: number;
+  user_id: number;
+  activity_id: number | null;
+  type: "income" | "expense";
+  amount: number;
+  date: string;
+  description: string | null;
+  activity_name?: string | null;
+  category: string | null;
 };
 
 export type LoginResponse = {

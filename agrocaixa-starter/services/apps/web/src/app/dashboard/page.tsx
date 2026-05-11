@@ -17,6 +17,63 @@ import {
   UnreadAlertsResponse,
 } from "@/types/reports";
 
+const firstAccessChecklist = [
+  "Cadastre a fazenda, a cidade e as atividades produtivas para dar contexto ao financeiro.",
+  "Comece pelos lançamentos mais recorrentes da semana para o painel aprender a operação.",
+  "Use o onboarding para alinhar quem vai cadastrar, revisar alertas e acompanhar o caixa.",
+];
+
+const productModules = [
+  {
+    tag: "Base de uso",
+    title: "Primeiro acesso guiado",
+    description:
+      "Explique cadastro, ativação e ordem de uso para quem está entrando no AgroCaixa pela primeira vez.",
+    href: "/primeiro-acesso",
+    action: "Ver onboarding",
+  },
+  {
+    tag: "Inteligência",
+    title: "Previsão de safra e mercado",
+    description:
+      "Leve o produto além do livro-caixa com previsão por atividade e sinais comerciais para venda.",
+    href: "/inteligencia",
+    action: "Abrir módulo",
+  },
+  {
+    tag: "Operação",
+    title: "Logística da fazenda",
+    description:
+      "Conecte frete, entrega, rota e escoamento à mesma leitura financeira da fazenda.",
+    href: "/logistica",
+    action: "Ver logística",
+  },
+  {
+    tag: "Financeiro",
+    title: "Fluxo e orçamento",
+    description:
+      "Acompanhe caixa futuro, metas por categoria e custo por atividade em visão gerencial.",
+    href: "/financeiro",
+    action: "Ver financeiro",
+  },
+  {
+    tag: "Gestão",
+    title: "Relatórios mensais",
+    description:
+      "Resuma o mês, compare safras e entenda melhor quais culturas sustentam a operação.",
+    href: "/relatorios",
+    action: "Abrir relatórios",
+  },
+  {
+    tag: "Rotina",
+    title: "Centro de notificações",
+    description:
+      "Misture vencimento, recebimento, aviso de custo e sinal comercial em uma fila mais inteligente.",
+    href: "/notificacoes",
+    action: "Ver notificações",
+  },
+];
+
 export default function DashboardPage() {
   const router = useRouter();
 
@@ -115,6 +172,16 @@ export default function DashboardPage() {
       : "Assim que houver movimentação por atividade, mostramos a mais rentável.",
   ];
 
+  const nextMoves = [
+    summary && summary.total_transactions === 0
+      ? "Seu próximo passo é lançar as primeiras receitas e despesas para ativar os indicadores."
+      : "Com os lançamentos em dia, já vale comparar atividades e revisar tendências de custo.",
+    unreadAlerts > 0
+      ? "Há alertas suficientes para revisar desvios antes de repetir gasto ou perder margem."
+      : "Sem alertas críticos agora, dá para avançar na expansão com inteligência, logística e integração.",
+    "O próximo ganho real está em usar fluxo de caixa futuro, relatórios e notificações como rotina da equipe.",
+  ];
+
   return (
     <AppShell
       eyebrow="Painel operacional"
@@ -127,6 +194,9 @@ export default function DashboardPage() {
           </Link>
           <Link className="button button--ghost-light" href="/alerts">
             Revisar alertas
+          </Link>
+          <Link className="button button--ghost-light" href="/inteligencia">
+            Explorar inteligência
           </Link>
         </>
       }
@@ -285,6 +355,50 @@ export default function DashboardPage() {
 
           <section className="split-grid">
             <SectionCard
+              title="Se for o primeiro acesso da equipe"
+              description="Esse fluxo ajuda a reduzir dúvida no início e acelera o momento em que o painel vira algo útil."
+            >
+              <ul className="soft-list soft-list--card">
+                {firstAccessChecklist.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+
+              <div className="inline-actions">
+                <Link className="button button--secondary" href="/primeiro-acesso">
+                  Abrir onboarding
+                </Link>
+                <Link className="button button--ghost" href="/transactions/new">
+                  Fazer primeiro lançamento
+                </Link>
+              </div>
+            </SectionCard>
+
+            <SectionCard
+              title="Módulos novos do front"
+              description="Além do financeiro, o produto agora já apresenta expansão para inteligência e logística."
+            >
+              <ul className="detail-list">
+                {productModules.map((module) => (
+                  <li className="detail-item" key={module.title}>
+                    <div className="alert-meta">
+                      <span className="support-pill">{module.tag}</span>
+                    </div>
+                    <strong>{module.title}</strong>
+                    <p className="support-paragraph">{module.description}</p>
+                    <div className="inline-actions">
+                      <Link className="button button--secondary" href={module.href}>
+                        {module.action}
+                      </Link>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </SectionCard>
+          </section>
+
+          <section className="split-grid">
+            <SectionCard
               title="Resultado por atividade"
               description="Veja onde a produção está puxando saldo e onde o custo está comendo margem."
             >
@@ -316,14 +430,23 @@ export default function DashboardPage() {
             </SectionCard>
 
             <SectionCard
-              title="O que a plataforma vai te ajudar a melhorar"
+              title="Próximos movimentos"
               description="A ideia do produto é transformar o financeiro em rotina de decisão, não em obrigação burocrática."
             >
               <ul className="soft-list soft-list--card">
-                <li>Registrar rápido sem depender de computador ou planilha longa.</li>
-                <li>Comparar meses para perceber aumento de custo antes do aperto.</li>
-                <li>Entender quais atividades realmente sustentam a operação.</li>
+                {nextMoves.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
               </ul>
+
+              <div className="inline-actions">
+                <Link className="button button--secondary" href="/logistica">
+                  Ir para logística
+                </Link>
+                <Link className="button button--ghost" href="/inteligencia">
+                  Ver previsão e mercado
+                </Link>
+              </div>
             </SectionCard>
           </section>
         </div>

@@ -517,6 +517,17 @@ textarea {
   padding: 24px;
 }
 
+.feature-card--cta {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.feature-card--cta .button {
+  justify-self: start;
+  margin-top: auto;
+}
+
 .feature-card h3,
 .step-card h3 {
   margin: 0 0 10px;
@@ -542,6 +553,17 @@ textarea {
 
 .landing-section--cta {
   padding-bottom: 40px;
+}
+
+.landing-shell--guide {
+  background:
+    radial-gradient(circle at 14% 8%, rgba(191, 123, 46, 0.22), transparent 20%),
+    radial-gradient(circle at 84% 10%, rgba(43, 107, 74, 0.24), transparent 24%),
+    linear-gradient(180deg, #153726 0%, #102b1f 52%, #efe3d1 52%, #eadfce 100%);
+}
+
+.landing-hero--guide {
+  align-items: stretch;
 }
 
 .landing-cta {
@@ -629,6 +651,13 @@ textarea {
   border-color: rgba(255, 249, 241, 0.18);
   background: rgba(255, 249, 241, 0.08);
   color: var(--foreground-inverse);
+}
+
+.support-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
 }
 
 .product-shell {
@@ -1161,13 +1190,15 @@ textarea {
   .landing-nav__actions,
   .header-actions,
   .inline-actions,
-  .support-pill-row {
+  .support-pill-row,
+  .support-actions {
     width: 100%;
   }
 
   .landing-nav__actions > *,
   .header-actions > *,
-  .inline-actions > * {
+  .inline-actions > *,
+  .support-actions > * {
     flex: 1 1 100%;
   }
 

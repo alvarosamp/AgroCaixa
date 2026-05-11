@@ -19,9 +19,24 @@ type AppShellProps = {
 
 const navItems = [
   {
+    href: "/fazendas",
+    label: "Fazendas",
+    matches: (pathname: string) => pathname.startsWith("/fazendas"),
+  },
+  {
     href: "/dashboard",
     label: "Painel",
     matches: (pathname: string) => pathname === "/dashboard",
+  },
+  {
+    href: "/financeiro",
+    label: "Financeiro",
+    matches: (pathname: string) => pathname.startsWith("/financeiro"),
+  },
+  {
+    href: "/transactions",
+    label: "Movimentos",
+    matches: (pathname: string) => pathname.startsWith("/transactions"),
   },
   {
     href: "/alerts",
@@ -29,9 +44,29 @@ const navItems = [
     matches: (pathname: string) => pathname.startsWith("/alerts"),
   },
   {
-    href: "/transactions/new",
-    label: "Lançar",
-    matches: (pathname: string) => pathname.startsWith("/transactions"),
+    href: "/notificacoes",
+    label: "Notificações",
+    matches: (pathname: string) => pathname.startsWith("/notificacoes"),
+  },
+  {
+    href: "/relatorios",
+    label: "Relatórios",
+    matches: (pathname: string) => pathname.startsWith("/relatorios"),
+  },
+  {
+    href: "/inteligencia",
+    label: "Inteligência",
+    matches: (pathname: string) => pathname.startsWith("/inteligencia"),
+  },
+  {
+    href: "/logistica",
+    label: "Logística",
+    matches: (pathname: string) => pathname.startsWith("/logistica"),
+  },
+  {
+    href: "/integracoes",
+    label: "Integrações",
+    matches: (pathname: string) => pathname.startsWith("/integracoes"),
   },
 ];
 

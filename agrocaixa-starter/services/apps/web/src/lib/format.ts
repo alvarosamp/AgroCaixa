@@ -8,8 +8,22 @@ const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeStyle: "short",
 });
 
+const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "medium",
+});
+
 export function formatCurrency(value: number) {
   return currencyFormatter.format(Number.isFinite(value) ? value : 0);
+}
+
+export function formatDate(value: string | Date) {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Data inválida";
+  }
+
+  return dateFormatter.format(date);
 }
 
 export function formatDateTime(value: string | Date) {

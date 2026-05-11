@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import BrandMark from "@/components/BrandMark";
@@ -9,17 +9,19 @@ import { ApiError, apiFetch } from "@/lib/api";
 import { getToken, saveToken } from "@/lib/auth";
 import { LoginResponse } from "@/types/reports";
 
-const benefitPoints = [
-  "Painel com leitura de caixa por atividade rural.",
-  "Categoria sugerida por IA para reduzir retrabalho no lançamento.",
-  "Alertas financeiros para agir antes da margem apertar.",
-];
+type RegisterResponse = {
+  id: number;
+  name: string;
+  email: string;
+};
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -32,10 +34,30 @@ export default function LoginPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    if (password.length < 6) {
+      setError("Use uma senha com pelo menos 6 caracteres.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("A confirmação da senha não confere.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const data = await apiFetch<LoginResponse>("/auth/login", {
+      await apiFetch<RegisterResponse>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+        }),
+      });
+
+      const loginData = await apiFetch<LoginResponse>("/auth/login", {
         method: "POST",
         body: JSON.stringify({
           email: email.trim(),
@@ -43,13 +65,13 @@ export default function LoginPage() {
         }),
       });
 
-      saveToken(data.access_token);
+      saveToken(loginData.access_token);
       router.replace("/dashboard");
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError("Não foi possível entrar agora. Tente novamente.");
+        setError("Não foi possível concluir o cadastro agora.");
       }
     } finally {
       setLoading(false);
@@ -63,53 +85,51 @@ export default function LoginPage() {
           <BrandMark href="/" tone="light" />
           <div className="header-actions">
             <Link className="link-pill link-pill--light" href="/primeiro-acesso">
-              Primeiro acesso
+              Ver onboarding
             </Link>
-            <Link className="link-pill link-pill--light" href="/">
-              Voltar ao site
+            <Link className="link-pill link-pill--light" href="/login">
+              Já tenho acesso
             </Link>
           </div>
         </div>
 
-        <span className="kicker">Acesso do produto</span>
+        <span className="kicker">Cadastro inicial</span>
         <h1 className="page-title page-title--hero">
-          Um financeiro rural com cara de ferramenta séria, não de improviso.
+          Comece sua operação digital com um acesso pensado para o primeiro uso.
         </h1>
         <p className="page-subtitle page-subtitle--hero">
-          Entre para acompanhar caixa, custos e alertas em uma experiência mais
-          clara para quem precisa decidir rápido.
+          Depois do cadastro, a ideia é cadastrar fazenda, atividades e iniciar os
+          lançamentos para o painel ganhar inteligência rapidamente.
         </p>
 
-        <div className="auth-metric-grid">
-          <article className="auth-metric-card">
-            <span>Visão do mês</span>
-            <strong>Saldo, categorias e alertas</strong>
-          </article>
-          <article className="auth-metric-card">
-            <span>Primeiro acesso</span>
-            <strong>Cadastro, onboarding e ativação guiada</strong>
-          </article>
-        </div>
-
         <ul className="soft-list soft-list--light">
-          {benefitPoints.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
+          <li>Crie o acesso do responsável financeiro ou gestor da fazenda.</li>
+          <li>Entre no painel e siga a ordem fazenda, atividade e lançamento.</li>
+          <li>Use inteligência e logística como camadas de crescimento do produto.</li>
         </ul>
       </section>
 
       <section className="surface-card auth-card auth-card--dense">
-        <span className="kicker kicker--dark">Entrar</span>
+        <span className="kicker kicker--dark">Criar conta</span>
         <h2 className="section-title section-title--compact">
-          Continue para o painel
+          Seu primeiro acesso começa aqui
         </h2>
-        <p className="page-subtitle">
-          Use seu e-mail de acesso para abrir o controle financeiro da operação.
-        </p>
 
         {error ? <div className="notice notice--error">{error}</div> : null}
 
         <form className="form-grid" onSubmit={handleSubmit}>
+          <div className="field">
+            <label htmlFor="name">Nome</label>
+            <input
+              id="name"
+              className="input"
+              placeholder="Nome do responsável"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+            />
+          </div>
+
           <div className="field">
             <label htmlFor="email">E-mail</label>
             <input
@@ -119,7 +139,6 @@ export default function LoginPage() {
               placeholder="voce@fazenda.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              autoComplete="email"
               required
             />
           </div>
@@ -130,27 +149,30 @@ export default function LoginPage() {
               id="password"
               className="input"
               type="password"
-              placeholder="Sua senha"
+              placeholder="Crie uma senha"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              autoComplete="current-password"
+              required
+            />
+          </div>
+
+          <div className="field">
+            <label htmlFor="confirmPassword">Confirmar senha</label>
+            <input
+              id="confirmPassword"
+              className="input"
+              type="password"
+              placeholder="Repita a senha"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
               required
             />
           </div>
 
           <button className="button" type="submit" disabled={loading}>
-            {loading ? "Entrando..." : "Abrir meu painel"}
+            {loading ? "Criando acesso..." : "Criar conta e entrar"}
           </button>
         </form>
-
-        <div className="support-actions">
-          <Link className="button button--secondary" href="/register">
-            Criar conta
-          </Link>
-          <Link className="button button--secondary" href="/primeiro-acesso">
-            Como funciona o cadastro
-          </Link>
-        </div>
       </section>
     </main>
   );
